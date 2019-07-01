@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Temperature Control Panel</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="Temperature Control Panel" content="Useing HDT22 to monitor a tunnel">
+  <meta name="Austin Stokes" content="St.Thomas University">
+  <style>
+    a:link, a:visited {
+      background-color: white;
+      color: black;
+      padding: 15px 25px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    a:hover, a:active {
+      background-color: rgb(230, 230, 230);
+    }
+  </style>
+</head>
+<body style="background-color:rgb(200, 200, 200);">
+
+<h1 style="text-align:center;">Temperature Control Panel</h1>
+<p>This is a paragraph.</p>
+
+<iframe width="450" height="260" style="border: 1px solid #cccccc;" src="https://thingspeak.com/channels/808957/charts/2?bgcolor=%23ffffff&color=%23d62020&dynamic=true&results=60&type=line&update=15"></iframe>
+
+<iframe name="iframe_a" height="0" width="0"></iframe>
+
+<form name="input" action="https://api.thingspeak.com/update" method="post" enctype="multipart/form-data">
+	<fieldset>
+    	<legend>Change the Overheating Temperature</legend>
+        New Overheating Temperature in Fahrenheit:<br>
+    	<input type="number" placeholder="100" name="field2" autofocus required><br>
+        ThingSpeak Write API Key:<br>
+    	<input type="password" value="SRP3DRXNERSYNQDL" name="api_key" required><br><br>
+    	<input type="submit" formtarget="iframe_a" value="Submit Normal">
+        <input type="submit" formtarget="_blank" value="Submit New Window">
+    </fieldset>
+</form>
+<br>
+</body>
+</html>
