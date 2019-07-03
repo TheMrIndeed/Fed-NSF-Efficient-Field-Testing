@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Temperature Control Panel</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="Temperature Control Panel" content="Useing HDT22 to monitor a tunnel">
+  <meta name="Austin Stokes" content="St.Thomas University">
+  <style>
+    a.button:link, a.button:visited {
+      background-color: #f44336;
+      color: white;
+  	  padding: 15px 25px;
+      margin: 5px 7px;
+      width: 130px;
+      height: 10px;
+  	  text-align: center;
+  	  text-decoration: none;
+ 	  display: inline-block;
+      font-size: 70%;
+    }
+
+    a.button:hover, a.button:active {
+  	  background-color: red;
+    }
+  </style>
+</head>
+<body style="background-color:rgb(200, 200, 200);">
+<table border=2 bordercollor="0000FF">
+<tr><td>
+<h1 align="center" color="#00FFFF" style="font-size:150%;">Temperature Control Panel</h1>
+
+<iframe name="iframe_graph" style="border: 3px solid #aaaaaa;width:97%;height:230px;object-fit:contain;margin-left:1%;" src="https://api.thingspeak.com/channels/808957/charts/1?title=Temperature%20Readings%20For%20One%20Day&color=%23d62020&xaxis=Time&results=144&width=auto&height=auto"></iframe>
+
+<a class="button" href="https://api.thingspeak.com/channels/808957/charts/1?title=Temperature%20Readings%20For%20One%20Day&color=%23d62020&xaxis=Time&results=144&width=auto&height=auto" target="iframe_graph">Show Graph For One Day</a>
+
+<a class="button" href="https://api.thingspeak.com/channels/808957/charts/1?title=Temperature%20Readings%20For%20One%20Week&color=%23d62020&xaxis=Time&results=168&average=60&width=auto&height=auto" target="iframe_graph">Show Graph For One Week</a>
+
+<a class="button" href="https://api.thingspeak.com/channels/808957/charts/1?title=Temperature%20Readings%20For%20One%20Month&color=%23d62020&xaxis=Time&results=30&average=1440&width=auto&height=auto" target="iframe_graph">Show Graph For One Month</a>
+
+<a class="button" href="https://api.thingspeak.com/channels/808957/charts/1?title=Temperature%20Readings%20For%20One%20Year&color=%23d62020&xaxis=Time&results=365&average=1440&width=auto&height=auto" target="iframe_graph">Show Graph For One Year</a>
+
+<iframe style="border: 3px solid #aaaaaa;width:97%;height:230px;object-fit:contain;margin-left:1%;" src="https://thingspeak.com/channels/808957/widgets/84237&width=auto&height=auto"></iframe>
+
+
+<iframe name="iframe_a" height="0" width="0"></iframe>
+<form name="input" action="https://api.thingspeak.com/update" method="post" enctype="multipart/form-data">
+	<fieldset>
+    	<legend>Change the Overheating Temperature</legend>
+        New Overheating Temperature in Fahrenheit:<br>
+    	<input type="number" placeholder="100" name="field2" autofocus required><br>
+        ThingSpeak Write API Key:<br>
+    	<input type="password" value="SRP3DRXNERSYNQDL" name="api_key" required><br><br>
+    	<input type="submit" formtarget="iframe_a" value="Submit Normal">
+        <input type="submit" formtarget="_blank" value="Submit New Window">
+    </fieldset>
+</form>
+</td></tr>
+</table>
+<p>The Overheating Temperature refers to the temperature at witch you will get a notification. This will happen when the Arduino gets a temperature reading that is above the Overheating Temperature. You will also get a notification if the Arduino calculates that there is a high problbility that it will overheat based off of weather forcasting and previous temperature measurements.
+<p>To get your ThingSpeak Write API Key you can go to
+<a href="https://thingspeak.com/channels/808957/api_keys" target="_blank">https://thingspeak.com/channels/808957/api_keys</a>
+and copy the Write API Key from there. It is very importan not to generate/reset the Read or Write API key as that will require changes to be made to the Arduino code.
+
+</body>
+</html>
