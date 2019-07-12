@@ -13,4 +13,4 @@ There are multiple changes that need to be made to the Arduino_Field_Testing fil
 - **IFTTT_Key** IFTTT API Key
 
 
-There are also three .m files. These files are already running on ThingSpeak so there is no need to update them unless a new API key is generated for a ThingSpeak channel, Open Weather Map, or IFTTT. The averageTempDiff and checkWeather are meant to run once a day. The weatherData is meant to run every ten minutes, it looks better if it runs exactly on the ten minute mark(0000, 0010, 0020, etc.) but it should work no matter the start time.
+There are also three .m files. These files are already running on ThingSpeak so there is no need to update them unless a new API key is generated for a ThingSpeak channel, Open Weather Map, or IFTTT. The averageTempDiff and checkWeather are meant to run once a day. The weatherData is meant to run every ten minutes, it looks better if it runs exactly on the ten minute mark (0000, 0010, 0020, etc.) but it should work no matter the start time.
