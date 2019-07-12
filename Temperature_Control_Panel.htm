@@ -30,22 +30,22 @@
 <tr><td>
 <h1 align="center" color="#00FFFF" style="font-size:150%;">Temperature Control Panel</h1>
 
-//Change ****** to the ThingSpeak temperature Channel ID
+<!Change ****** to the ThingSpeak temperature Channel ID>
 <iframe name="iframe_graph" id="iframe_graph" style="border: 3px solid #aaaaaa;width:97%;height:230px;object-fit:contain;margin-left:1%;" src="https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Day&color=%23d62020&xaxis=Time&results=144&days=1&width=auto&height=auto"></iframe>
 
-//Change ****** to the ThingSpeak temperature Channel ID
+<!Change ****** to the ThingSpeak temperature Channel ID>
 <button onclick="document.getElementById('iframe_graph').src='https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Day&color=%23d62020&xaxis=Time&results=144&days=1&width=auto&height=auto'">Show Graph For One Day</button>
 
-//Change ****** to the ThingSpeak temperature Channel ID
+<!Change ****** to the ThingSpeak temperature Channel ID>
 <button onclick="document.getElementById('iframe_graph').src='https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Week&color=%23d62020&xaxis=Time&results=168&days=7&average=60&width=auto&height=auto'">Show Graph For One Week</button>
 
-//Change ****** to the ThingSpeak temperature Channel ID
+<!Change ****** to the ThingSpeak temperature Channel ID>
 <button onclick="document.getElementById('iframe_graph').src='https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Month&color=%23d62020&xaxis=Time&results=30&days=30&average=1440&width=auto&height=auto'">Show Graph For One Month</button>
 
-//Change ****** to the ThingSpeak temperature Channel ID
+<!Change ****** to the ThingSpeak temperature Channel ID>
 <button onclick="document.getElementById('iframe_graph').src='https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Year&color=%23d62020&xaxis=Time&results=365&days=365&average=1440&width=auto&height=auto'">Show Graph For One Year</button>
 
-//Change first ****** to the ThingSpeak highTemperature Channel ID, change second ****** to widget number
+<!Change first ****** to the ThingSpeak highTemperature Channel ID, change second ****** to widget number>
 <iframe style="border: 3px solid #aaaaaa;width:97%;height:230px;object-fit:contain;margin-left:1%;margin-bottom:4px;margin-top:4px;" src="https://thingspeak.com/channels/******/widgets/******&width=auto&height=auto"></iframe>
 
 <script>
@@ -104,7 +104,7 @@
 The Overheating Temperature refers to the temperature at witch you will get a notification. You will get a notification when the Arduino gets a temperature reading that is above the Overheating Temperature. You will also get a notification if ThingSpeak calculates that there is a high problbility that it will overheat based off of weather forcasting and previous temperature measurements.
 </p>
 
-//Change ****** to the ThingSpeak highTemperature Channel ID
+<!Change ****** to the ThingSpeak highTemperature Channel ID>
 <p>
 To get your ThingSpeak Write API Key you can go to
 <a href="https://thingspeak.com/channels/******/api_keys" target="_blank">https://thingspeak.com/channels/******/api_keys</a>
