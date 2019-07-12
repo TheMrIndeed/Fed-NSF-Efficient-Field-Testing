@@ -9,14 +9,12 @@ url = append('https://api.openweathermap.org/data/2.5/forecast?lat=44.653426&lon
 Current_Data = webread(url);
 
 % Channel IDs to read data from:
-highChannelID = 819411;
-averageChannelID = 819414;
+highChannelID = ;                       %Update
+averageChannelID = ;                    %Update
 
 % Write API Keys:
-highReadAPIKey = '4N4S3MP0QPKJU4PF';
-averageReadAPIKey = 'Y6T9XJR4M9HDVOHM';
-
-%thingSpeakWrite(averageChannelID,'Fields',1,'Values',5,'WriteKey','V1M7876F78AIL0ZX');
+highReadAPIKey = '';                    %Update
+averageReadAPIKey = '';                 %Update
 
 highTemp=thingSpeakRead(highChannelID);
 averageDifference=thingSpeakRead(averageChannelID);
@@ -46,10 +44,3 @@ if(j==0)
 elseif(j==1)
     responce=webread(messageUrl)
 end
-
-
-%thingSpeakWrite(channelID,'Fields',3,dataTable,'WriteKey',writeAPIKey,)
-
-
-%% Write Data %%
-%%thingSpeakWrite(writeChannelID, analyzedData, 'WriteKey', writeAPIKey);
