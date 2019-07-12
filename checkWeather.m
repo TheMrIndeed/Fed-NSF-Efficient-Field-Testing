@@ -4,7 +4,8 @@
 responces=40;
 
 % URL of the page to read data from
-url = append('https://api.openweathermap.org/data/2.5/forecast?lat=44.653426&lon=-93.003440&cnt=',int2str(responces),'&units=imperial&appid=82e84a17d4bc553ec6c7ecdcb8fe9bd5');
+% Replace ****** with latitude and longitude respectivitaly
+url = append('https://api.openweathermap.org/data/2.5/forecast?lat=******&lon=******&cnt=',int2str(responces),'&units=imperial&appid=82e84a17d4bc553ec6c7ecdcb8fe9bd5');
 %% Scrape the webpage %%
 Current_Data = webread(url);
 
