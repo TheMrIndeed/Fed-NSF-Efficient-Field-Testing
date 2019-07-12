@@ -50,13 +50,13 @@
 
 <script>
 	function myFunction(){
-    	var e = document.getElementById("a");
+    	var e = document.getElementById("crops");
         var x = e.options[e.selectedIndex].value;
         if(x=="1000"){
-        	document.getElementById("b").removeAttribute("value")
+        	document.getElementById("temp").removeAttribute("value")
         }
         else{
-        	document.getElementById("b").setAttribute("value",x);
+        	document.getElementById("temp").setAttribute("value",x);
         }
 	}
 </script>
@@ -68,31 +68,31 @@
         ThingSpeak Write API Key:<br>
     	<input type="password" name="High Temperature write api_key" required><br>
         New Overheating Temperature in Fahrenheit:<br>
-        <select id="a" onchange="myFunction()">
+        <select id="crops" onchange="myFunction()">
         	<option value="1000" selected> Other</option>
         	<option value="85"> Artichoke:85</option>
-            <option value="70"> Beets:70</option>
-            <option value="85"> Carrots:85</option>
-            <option value="75"> Cauliflower:75</option>
-            <option value="90"> Cucumbers:90</option>
-            <option value="90"> Eggplant:90</option>
-            <option value="50"> Garlic:50</option>
-            <option value="85"> Green Beans:85</option>
-            <option value="77"> Green Onions:77</option>
-            <option value="80"> Kale:80</option>
-            <option value="75"> Leeks:75</option>
-            <option value="80"> Lettuce:80</option>
-            <option value="70"> Peas:70</option>
-            <option value="80"> Peppers:80</option>
-            <option value="80"> Potatoes:80</option>
-            <option value="65"> Radishes:65</option>
-            <option value="75"> Rhubarb:75</option>
-            <option value="75"> Spinach:75</option>
-            <option value="75"> Swiss Chard:75</option>
-            <option value="59"> Watercress:59</option>
-            <option value="70"> Zucchini:70</option>
+            	<option value="70"> Beets:70</option>
+            	<option value="85"> Carrots:85</option>
+            	<option value="75"> Cauliflower:75</option>
+            	<option value="90"> Cucumbers:90</option>
+            	<option value="90"> Eggplant:90</option>
+            	<option value="50"> Garlic:50</option>
+            	<option value="85"> Green Beans:85</option>
+            	<option value="77"> Green Onions:77</option>
+            	<option value="80"> Kale:80</option>
+            	<option value="75"> Leeks:75</option>
+            	<option value="80"> Lettuce:80</option>
+            	<option value="70"> Peas:70</option>
+            	<option value="80"> Peppers:80</option>
+            	<option value="80"> Potatoes:80</option>
+            	<option value="65"> Radishes:65</option>
+            	<option value="75"> Rhubarb:75</option>
+            	<option value="75"> Spinach:75</option>
+            	<option value="75"> Swiss Chard:75</option>
+            	<option value="59"> Watercress:59</option>
+            	<option value="70"> Zucchini:70</option>
         </select>
-    	<input type="number" placeholder="Other Temp Here" id="b" name="field1" autofocus><br><br>
+    	<input type="number" placeholder="Other Temp Here" id="temp" name="field1" autofocus><br><br>
         
     	<input type="submit" formtarget="iframe_a" value="Submit Normal">
         <input type="submit" formtarget="_blank" value="Submit New Window">
