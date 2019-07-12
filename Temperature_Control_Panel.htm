@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <title>Temperature Control Panel</title>
@@ -30,29 +30,70 @@
 <tr><td>
 <h1 align="center" color="#00FFFF" style="font-size:150%;">Temperature Control Panel</h1>
 
-<!Change the ****** in the first two iframes and links to your ThingSpeak channel ID>
+//Change ****** to the ThingSpeak temperature Channel ID
+<iframe name="iframe_graph" id="iframe_graph" style="border: 3px solid #aaaaaa;width:97%;height:230px;object-fit:contain;margin-left:1%;" src="https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Day&color=%23d62020&xaxis=Time&results=144&days=1&width=auto&height=auto"></iframe>
 
-<iframe name="iframe_graph" style="border: 3px solid #aaaaaa;width:97%;height:230px;object-fit:contain;margin-left:1%;" src="https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Day&color=%23d62020&xaxis=Time&results=144&width=auto&height=auto"></iframe>
+//Change ****** to the ThingSpeak temperature Channel ID
+<button onclick="document.getElementById('iframe_graph').src='https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Day&color=%23d62020&xaxis=Time&results=144&days=1&width=auto&height=auto'">Show Graph For One Day</button>
 
-<a class="button" href="https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Day&color=%23d62020&xaxis=Time&results=144&width=auto&height=auto" target="iframe_graph">Show Graph For One Day</a>
+//Change ****** to the ThingSpeak temperature Channel ID
+<button onclick="document.getElementById('iframe_graph').src='https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Week&color=%23d62020&xaxis=Time&results=168&days=7&average=60&width=auto&height=auto'">Show Graph For One Week</button>
 
-<a class="button" href="https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Week&color=%23d62020&xaxis=Time&results=168&average=60&width=auto&height=auto" target="iframe_graph">Show Graph For One Week</a>
+//Change ****** to the ThingSpeak temperature Channel ID
+<button onclick="document.getElementById('iframe_graph').src='https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Month&color=%23d62020&xaxis=Time&results=30&days=30&average=1440&width=auto&height=auto'">Show Graph For One Month</button>
 
-<a class="button" href="https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Month&color=%23d62020&xaxis=Time&results=30&average=1440&width=auto&height=auto" target="iframe_graph">Show Graph For One Month</a>
+//Change ****** to the ThingSpeak temperature Channel ID
+<button onclick="document.getElementById('iframe_graph').src='https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Year&color=%23d62020&xaxis=Time&results=365&days=365&average=1440&width=auto&height=auto'">Show Graph For One Year</button>
 
-<a class="button" href="https://api.thingspeak.com/channels/******/charts/1?title=Temperature%20Readings%20For%20One%20Year&color=%23d62020&xaxis=Time&results=365&average=1440&width=auto&height=auto" target="iframe_graph">Show Graph For One Year</a>
+//Change first ****** to the ThingSpeak highTemperature Channel ID, change second ****** to widget number
+<iframe style="border: 3px solid #aaaaaa;width:97%;height:230px;object-fit:contain;margin-left:1%;margin-bottom:4px;margin-top:4px;" src="https://thingspeak.com/channels/******/widgets/******&width=auto&height=auto"></iframe>
 
-<iframe style="border: 3px solid #aaaaaa;width:97%;height:230px;object-fit:contain;margin-left:1%;margin-bottom:4px;margin-top:4px;" src="https://thingspeak.com/channels/******/widgets/84237&width=auto&height=auto"></iframe>
-
+<script>
+	function myFunction(){
+    	var e = document.getElementById("a");
+        var x = e.options[e.selectedIndex].value;
+        if(x=="1000"){
+        	document.getElementById("b").removeAttribute("value")
+        }
+        else{
+        	document.getElementById("b").setAttribute("value",x);
+        }
+	}
+</script>
 
 <iframe name="iframe_a" height="0" width="0"></iframe>
 <form name="input" action="https://api.thingspeak.com/update" method="post" enctype="multipart/form-data">
 	<fieldset>
     	<legend>Change the Overheating Temperature</legend>
-        New Overheating Temperature in Fahrenheit:<br>
-    	<input type="number" placeholder="100" name="field2" autofocus required><br>
         ThingSpeak Write API Key:<br>
-    	<input type="password" name="api_key" required><br><br>
+    	<input type="password" name="High Temperature write api_key" required><br>
+        New Overheating Temperature in Fahrenheit:<br>
+        <select id="a" onchange="myFunction()">
+        	<option value="1000" selected> Other</option>
+        	<option value="85"> Artichoke:85</option>
+            <option value="70"> Beets:70</option>
+            <option value="85"> Carrots:85</option>
+            <option value="75"> Cauliflower:75</option>
+            <option value="90"> Cucumbers:90</option>
+            <option value="90"> Eggplant:90</option>
+            <option value="50"> Garlic:50</option>
+            <option value="85"> Green Beans:85</option>
+            <option value="77"> Green Onions:77</option>
+            <option value="80"> Kale:80</option>
+            <option value="75"> Leeks:75</option>
+            <option value="80"> Lettuce:80</option>
+            <option value="70"> Peas:70</option>
+            <option value="80"> Peppers:80</option>
+            <option value="80"> Potatoes:80</option>
+            <option value="65"> Radishes:65</option>
+            <option value="75"> Rhubarb:75</option>
+            <option value="75"> Spinach:75</option>
+            <option value="75"> Swiss Chard:75</option>
+            <option value="59"> Watercress:59</option>
+            <option value="70"> Zucchini:70</option>
+        </select>
+    	<input type="number" placeholder="Other Temp Here" id="b" name="field1" autofocus><br><br>
+        
     	<input type="submit" formtarget="iframe_a" value="Submit Normal">
         <input type="submit" formtarget="_blank" value="Submit New Window">
     </fieldset>
@@ -60,14 +101,14 @@
 </td></tr>
 </table>
 <p>
-The Overheating Temperature refers to the temperature at witch you will get a notification. This will happen when the Arduino gets a temperature reading that is above the Overheating Temperature. You will also get a notification if the Arduino calculates that there is a high problbility that it will overheat based off of weather forcasting and previous temperature measurements.
+The Overheating Temperature refers to the temperature at witch you will get a notification. You will get a notification when the Arduino gets a temperature reading that is above the Overheating Temperature. You will also get a notification if ThingSpeak calculates that there is a high problbility that it will overheat based off of weather forcasting and previous temperature measurements.
 </p>
 
+//Change ****** to the ThingSpeak highTemperature Channel ID
 <p>
 To get your ThingSpeak Write API Key you can go to
-<!Change the ****** in the iframe to your ThingSpeak channel ID>
 <a href="https://thingspeak.com/channels/******/api_keys" target="_blank">https://thingspeak.com/channels/******/api_keys</a>
-and copy the Write API Key from there. It is very importan not to reset/generate new Read or Write API keys, if you do generate new API keys then the Arduino code will need to be changed to reflect that.
+and copy the Write API Key from there. It is very important not to reset/generate new Read or Write API keys, if you do generate new API keys then the Arduino code will need to be updated to reflect the changes.
 </p>
 
 <p>
