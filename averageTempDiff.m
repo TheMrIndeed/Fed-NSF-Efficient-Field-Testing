@@ -1,17 +1,15 @@
 % Send a warning useing thing speak if the tunnel is expected to overheat
 
 % Channel IDs to read data from:
-temperatureChannelID = 808957;
-weatherChannelID = 819413;
-averageChannelID = 819414;
+temperatureChannelID = ;            %Update
+weatherChannelID = ;                %Update
+averageChannelID = ;                %Update
 
 % API Keys:
-temperatureReadAPIKey = 'UQEJTA2SKM3B68L6';
-weatherReadAPIKey = 'X8K484COIMNY2HDR';
-averageReadAPIKey = 'Y6T9XJR4M9HDVOHM';
-averageWriteAPIKey = 'V1M7876F78AIL0ZX';
-
-%thingSpeakWrite(averageChannelID,'Fields',1,'Values',5,'WriteKey','V1M7876F78AIL0ZX');
+temperatureReadAPIKey = '';         %Update
+weatherReadAPIKey = '';             %Update
+averageReadAPIKey = '';             %Update
+averageWriteAPIKey = '';            %Update
 
 temperature = thingSpeakRead(temperatureChannelID,'NumDays',1,'OutputFormat','table');
 weather = thingSpeakRead(weatherChannelID,'NumDays',1,'OutputFormat','table');
