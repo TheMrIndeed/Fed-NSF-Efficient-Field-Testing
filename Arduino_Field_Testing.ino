@@ -136,7 +136,7 @@ void loop() {
   }
   
   //Every 10 minutes take temperature, check if it is too high, and calculate the difference from pridicted if applicable 86400
-  if(rtc.getEpoch()%25==0&&rtc.getEpoch()%3600!=0&&forceDayCycle<3700){//rtc.getEpoch()%600==0&&rtc.getEpoch()%86400!=0&&forceDayCycle<87000
+  if(rtc.getEpoch()%600==0&&rtc.getEpoch()%86400!=0&&forceDayCycle<87000){
     Serial.println(F("Getting temperature"));
     digitalWrite(ledPin, LOW);
 
@@ -172,7 +172,7 @@ void loop() {
     delay(3000);
 
     //Advance Day Cycle
-    forceDayCycle+=25;//600
+    forceDayCycle+=600;
     flash.eraseBlock32K(dailyLocation);
     flash.writeLong(dailyLocation,forceDayCycle);
     flash.writeFloat(dailyLocation+32,overheatingTemp);
@@ -181,7 +181,7 @@ void loop() {
   }
 
   //Send in the temperature once a day or if has not run for a day
-  if(rtc.getEpoch()%3600==0||forceDayCycle>=3700){//rtc.getEpoch()%86400==0||forceDayCycle>=87000
+  if(rtc.getEpoch()%86400==0||forceDayCycle>=87000){
     Serial.println("Preforming daily upload and download");
     digitalWrite(ledPin, LOW);
     delay(200);
