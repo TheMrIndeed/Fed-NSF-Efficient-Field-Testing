@@ -12,17 +12,15 @@ const char GPRS_LOGIN[] = " ";
 const char GPRS_PASSWORD[] = " ";
 
 //DHT temperature information
-#define DHTPIN 4
+#define DHTPIN 2
 #define DHTTYPE DHT22
 char jsonBuffer[6000] ="[";
 
 //ThingSpeak IDs
-unsigned long ThingSpeakChannelIDTemp = ;       //Update
-unsigned long ThingSpeakChannelIDHigh = ;       //Update
-unsigned long ThingSpeakChannelIDAvg = ;        //Update
-const char * ThingSpeakWriteKeyTemp = "";       //Update
-const char * ThingSpeakReadKeyHigh = "";        //Update
-const char * ThingSpeakWriteKeyAvg = "";        //Update
+unsigned long ThingSpeakChannelIDTemp = ;   //Update
+unsigned long ThingSpeakChannelIDHigh = ;   //Update
+const char * ThingSpeakWriteKeyTemp = "";   //Update
+const char * ThingSpeakReadKeyHigh = "";    //Update
 char TSserver[] = "api.thingspeak.com";
 
 //Flash information
@@ -34,7 +32,7 @@ int dailyLocation=7900000;
 //IFTTT data
 char IFTTT_Event[] = "highTemp";
 char IFserver[] = "maker.ifttt.com"; 
-char IFTTT_Key[] = "";                          //Update
+char IFTTT_Key[] = "";                    //Update
 
 //Input and Output
 int buttonState = 0;
@@ -56,6 +54,7 @@ char *append_str(char *here, char *s);
 int sendNotification(String dateTime);
 char *append_ul(char *here, unsigned long u);
 
+bool matched = false;
 
 void setup() {
   pinMode(buttonPin, INPUT);
@@ -64,7 +63,7 @@ void setup() {
   Serial.begin(9600);
   while(!Serial);
   
-  Serial.println(F("Daily Temperature Upload 02"));
+  Serial.println(F("Arduino_Field_Testing"));
   
   connectInternet();
 
@@ -79,129 +78,107 @@ void setup() {
   Serial.println(F("GSM initialized."));
   gsmAccess.shutdown();
   delay(2000);
-  Serial.println(F("\nAwaiting Input.\n"));
-  digitalWrite(ledPin, HIGH);
+  Serial.println(F("\nStarting Sleep Cycle.\n"));
+  byte minu=(((rtc.getMinutes()+10)-rtc.getMinutes()%10)%60);
+  
+  rtc.setAlarmMinutes(minu);
+  rtc.setAlarmSeconds(0);
+  rtc.enableAlarm(rtc.MATCH_MMSS);
+    
+  rtc.attachInterrupt(Alarma);
+  rtc.standbyMode();
+  digitalWrite(ledPin, LOW);
 }
 
 void loop() {
-  buttonState = digitalRead(buttonPin);
-
-  //Reset Button
-  int i;
-  if(buttonState == HIGH){
-    for(i=0;i<10;i++){
-      buttonState = digitalRead(buttonPin);
-      if(buttonState == HIGH){
-        if(i<5){ //Countdown for soft reset
-          Serial.print(F("Soft reset in: "));
-          Serial.println(5-i);
-          digitalWrite(ledPin, LOW);
-          delay(500);
-          digitalWrite(ledPin, HIGH);
-          delay(500);
-        }
-        if(i==5){
-          Serial.println(F("Release for soft reset"));
-          digitalWrite(ledPin, LOW);
-          delay(250);
-          digitalWrite(ledPin, HIGH);
-          delay(250);
-          digitalWrite(ledPin, LOW);
-          delay(250);
-          digitalWrite(ledPin, HIGH);
-          delay(250);
-        }
-        if(i>5){ //Countdown for hard reset
-          Serial.print(F("Hard reset in: "));
-          Serial.println(10-i);
-          digitalWrite(ledPin, LOW);
-          delay(500);
-          digitalWrite(ledPin, HIGH);
-          delay(500);
-        }
-      }
-      else{
-        Serial.println(F("Canceled"));
-        break;
-      }
-    }
-    if(i>=5&&i<10){ //If the button is relaesed after 5 seconds but before 10 it will run the day cycle
-      Serial.println("Soft Reset");
-      forceDayCycle=100000;
-    }
-    if(i==10){ //If the button is held for 10 seconds it will run the day cycle
-      Serial.println("Hard Reset");
-      resetAll();
-    }
-  }
+  if(matched){
+    //Every 10 minutes take temperature, check if it is too high
+    if(rtc.getEpoch()%86400<=86300&&rtc.getEpoch()%86400>=100&&forceDayCycle<=86500){
+      //Serial.println(F("Getting temperature"));
+      digitalWrite(ledPin, HIGH);
   
-  //Every 10 minutes take temperature, check if it is too high, and calculate the difference from pridicted if applicable 86400
-  if(rtc.getEpoch()%600==0&&rtc.getEpoch()%86400!=0&&forceDayCycle<87000){
-    Serial.println(F("Getting temperature"));
-    digitalWrite(ledPin, LOW);
-
-    //Store current time and temperature
-    int i;
-    for(i=0;i<300;i+=2){
-      if(flash.readLong(tempStart+(32*i))<=1){
-        flash.writeLong(tempStart+(32*i),rtc.getEpoch());
-        dht.readTemperature(true);
-        delay(3000);
-        int temp = dht.readTemperature(true);
-        Serial.print(F("Current temp: "));
-        Serial.println(temp);
-        flash.writeLong(tempStart+(32*(i+1)),temp);
-        break;
+      //Store current time and temperature
+      int i;
+      for(i=0;i<300;i+=2){
+        if(flash.readLong(tempStart+(32*i))<=1){
+          flash.writeLong(tempStart+(32*i),rtc.getEpoch());
+          dht.readTemperature(true);
+          delay(3000);
+          int temp = dht.readTemperature(true);
+          //Serial.print(F("Current temp: "));
+          //Serial.println(temp);
+          flash.writeLong(tempStart+(32*(i+1)),temp);
+          break;
+        }
       }
-    }
-    delay(3000);
-
-    //Check for high temp
-    float overheatingTemp=flash.readFloat(dailyLocation+32);
-    if(dht.readTemperature(true)>=overheatingTemp){
       delay(3000);
+  
+      //Check for high temp
+      float overheatingTemp=flash.readFloat(dailyLocation+32);
       if(dht.readTemperature(true)>=overheatingTemp){
-        String notification = "Your tunnel is currently overheating with a temperature of: ";
-        notification+= String(dht.readTemperature(true));
-        notification+= "F";
-        connectInternet();
-        sendNotification(notification);
-        gsmAccess.shutdown();
+        delay(3000);
+        if(dht.readTemperature(true)>=overheatingTemp){
+          //Serial.println(F("OverheatingTemp is "));
+          //Serial.println(overheatingTemp);
+          String notification = "Your tunnel is currently overheating with a temperature of: ";
+          notification+= String(dht.readTemperature(true));
+          notification+= "F";
+          connectInternet();
+          sendNotification(notification);
+          gsmAccess.shutdown();
+        }
       }
+      delay(3000);
+  
+      //Advance Day Cycle
+      forceDayCycle+=600;
+      flash.eraseBlock32K(dailyLocation);
+      flash.writeLong(dailyLocation,forceDayCycle);
+      flash.writeFloat(dailyLocation+32,overheatingTemp);
+      //Serial.println(F("Finished getting temperature"));
+      digitalWrite(ledPin, LOW);
     }
-    delay(3000);
+  
+    //Send in the temperature once a day or if has not run for a day
+    if(rtc.getEpoch()%86400>=86300||rtc.getEpoch()%86400<=100||forceDayCycle>=86500){
+      //Serial.println("Preforming daily upload and download");
+      digitalWrite(ledPin, HIGH);
+      delay(200);
+      digitalWrite(ledPin, LOW);
+      delay(200);
+      digitalWrite(ledPin, HIGH);
+      
+      connectInternet();
+      updatesJson(jsonBuffer);
+      httpRequest(jsonBuffer);
+  
+      delay(20000);
+      flash.eraseBlock32K(dailyLocation);
+      flash.writeLong(dailyLocation,0);
+      flash.writeFloat(dailyLocation+32,ThingSpeak.readFloatField(ThingSpeakChannelIDHigh,1,ThingSpeakReadKeyHigh));
+      forceDayCycle=0;
+      gsmAccess.shutdown();
+      delay(5000);
+      //Serial.println("Finished daily upload and download");
+      digitalWrite(ledPin, LOW);
+    }
 
-    //Advance Day Cycle
-    forceDayCycle+=600;
-    flash.eraseBlock32K(dailyLocation);
-    flash.writeLong(dailyLocation,forceDayCycle);
-    flash.writeFloat(dailyLocation+32,overheatingTemp);
-    Serial.println(F("Finished getting temperature"));
-    digitalWrite(ledPin, HIGH);
+    //Reset the alarm
+    matched = false;
+    
+    byte minu=(((rtc.getMinutes()+10)-rtc.getMinutes()%10)%60);
+  
+    rtc.setAlarmMinutes(minu);
+    rtc.setAlarmSeconds(0);
+    rtc.enableAlarm(rtc.MATCH_MMSS);
+    
+    rtc.attachInterrupt(Alarma);
+    rtc.standbyMode();
   }
+}
 
-  //Send in the temperature once a day or if has not run for a day
-  if(rtc.getEpoch()%86400==0||forceDayCycle>=87000){
-    Serial.println("Preforming daily upload and download");
-    digitalWrite(ledPin, LOW);
-    delay(200);
-    digitalWrite(ledPin, HIGH);
-    delay(200);
-    digitalWrite(ledPin, LOW);
-    
-    connectInternet();
-    updatesJson(jsonBuffer);
-    httpRequest(jsonBuffer);
-    
-    flash.eraseBlock32K(dailyLocation);
-    flash.writeLong(dailyLocation,0);
-    flash.writeFloat(dailyLocation+32,ThingSpeak.readFloatField(ThingSpeakChannelIDHigh,1,ThingSpeakReadKeyHigh));
-    forceDayCycle=0;
-    gsmAccess.shutdown();
-    delay(5000);
-    Serial.println("Finished daily upload and download");
-    digitalWrite(ledPin, HIGH);
-  }
+void Alarma(){
+  matched = true;
 }
 
 //Connect to the internet
@@ -232,15 +209,13 @@ void updatesJson(char* jsonBuffer){
   for(i=0;i<300;i+=2){
     if(flash.readLong(tempStart+(32*i))>=1){
       strcat(jsonBuffer,"{\"created_at\":");
-      unsigned long deltaT = flash.readLong(tempStart+(32*i));//rtc.getEpoch();
+      unsigned long deltaT = flash.readLong(tempStart+(32*i));
       size_t lengthT = String(deltaT).length();
       char temp[11];
       String(deltaT).toCharArray(temp,lengthT+1);
       strcat(jsonBuffer,temp);
       strcat(jsonBuffer,",");
-      int fahr = flash.readLong(tempStart+(32*(i+1)));//dht.readTemperature(true);
-      //Serial.print(F("Temp: "));
-      //Serial.println(fahr);
+      int fahr = flash.readLong(tempStart+(32*(i+1)));
       strcat(jsonBuffer, "\"field1\":");
       lengthT = String(fahr).length();
       String(fahr).toCharArray(temp,lengthT+1);
@@ -253,7 +228,7 @@ void updatesJson(char* jsonBuffer){
   }
   size_t len = strlen(jsonBuffer);
   jsonBuffer[len-1] = ']';
-  Serial.println(jsonBuffer);
+  //Serial.println(jsonBuffer);
 }
 
 // Updates the ThingSpeakchannel with data
@@ -267,7 +242,7 @@ void httpRequest(char* jsonBuffer) {
   // Close any connection before sending a new request
   client.stop();
   String data_length = String(strlen(data)+1); //Compute the data buffer length
-  Serial.println(data);
+  //Serial.println(data);
   // POST data to ThingSpeak
   if (client.connect(TSserver, 80)) {
     client.print("POST /channels/");
@@ -282,12 +257,12 @@ void httpRequest(char* jsonBuffer) {
     client.println(data);
   }
   else {
-    Serial.println("Failure: Failed to connect to ThingSpeak");
+    //Serial.println("Failure: Failed to connect to ThingSpeak");
   }
   delay(250); //Wait to receive the response
   client.parseFloat();
   String resp = String(client.parseInt());
-  Serial.println("Response code:"+resp); // Print the response code. 202 indicates that the TSserver has accepted the response
+  //Serial.println("Response code:"+resp); // Print the response code. 202 indicates that the TSserver has accepted the response
   jsonBuffer[0] = '['; //Reinitialize the jsonBuffer for next batch of data
   jsonBuffer[1] = '\0';
   flash.eraseBlock32K(tempStart);
@@ -298,10 +273,10 @@ int sendNotification(String notification) {
 
     // connect to the Maker event server
     if(client.connect(IFserver, 80)){
-      Serial.println("Connected to IFTTT server");
+      //Serial.println("Connected to IFTTT server");
     }
     else{
-      Serial.println("Failed to connected to IFTTT server");
+      //Serial.println("Failed to connected to IFTTT server");
       return 0;
     }
 
@@ -354,7 +329,7 @@ int sendNotification(String notification) {
     }
 
     //Send the POST to the server
-    Serial.println(post_rqst);
+    //Serial.println(post_rqst);
     client.print(post_rqst);
     client.stop();
     return 1;
@@ -386,35 +361,4 @@ String print2digits(int number) {
     result=String(number);
   }
   return result;
-}
-
-//Hard reset, clears all memory of temperatures
-void resetAll(){
-  Serial.println(F("Reseting all"));
-  
-  flash.eraseChip();
-  int i;
-  //Wait 10 seconds after eraseing chip
-  for(i=0;i<10;i++){
-    digitalWrite(ledPin, HIGH);
-    delay(500);
-    digitalWrite(ledPin, LOW);
-    delay(500);
-  }
-
-  gsmAccess.shutdown();
-  boolean connected = false;
-  connectInternet();
-  rtc.setEpoch(gsmAccess.getTime());
-
-  //Get the high temperature from ThingSpeak and reset the forceDayCycle
-  flash.writeLong(dailyLocation,0);
-  flash.writeFloat(dailyLocation+32,ThingSpeak.readFloatField(ThingSpeakChannelIDHigh,1,ThingSpeakReadKeyHigh));
-
-  //Reaset the average difference
-  ThingSpeak.writeField(ThingSpeakChannelIDAvg,1,0,ThingSpeakWriteKeyAvg);
-
-  gsmAccess.shutdown();
-  Serial.println("Finished Reset");
-  digitalWrite(ledPin, HIGH);
 }
