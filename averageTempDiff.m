@@ -26,8 +26,12 @@ temperature = table2cell(temperature);
 
 for i = 1:r1
     for j = 1:r2
-        if(between(weather{i,1},temperature{i,1},'Minutes')<=5)
-            averageDifference=((averageDifference*100+(temperature{2,i}-weather{2,i}))/101);
+        timeDiff=(posixtime(weather{i,1})-posixtime(temperature{j,1}));
+        if(timeDiff<0)
+            timeDiff=timeDiff*-1;
+        end
+        if(timeDiff<=300)
+            averageDifference=((averageDifference*100+(temperature{j,2}-weather{i,2}))/101);
             break;
         end
     end
