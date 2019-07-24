@@ -35,9 +35,7 @@ char IFserver[] = "maker.ifttt.com";
 char IFTTT_Key[] = "";                    //Update
 
 //Input and Output
-int buttonState = 0;
 const int ledPin = 6; //MKR GSM 1400 on board led on 6
-const int buttonPin = 7;
 
 //Objects and Functions
 GPRS gprs;
@@ -47,6 +45,8 @@ GSMClient client;
 DHT dht(DHTPIN,DHTTYPE);
 SPIFlash flash(FlashChipSelect);
 
+float getHighTemp();
+void connectInternet();
 String print2digits(int number);
 void httpRequest(char* jsonBuffer);
 void updatesJson(char* jsonBuffer);
@@ -57,7 +57,6 @@ char *append_ul(char *here, unsigned long u);
 bool matched = false;
 
 void setup() {
-  pinMode(buttonPin, INPUT);
   pinMode(ledPin, OUTPUT);
   
   Serial.begin(9600);
@@ -116,6 +115,8 @@ void loop() {
       //Check for high temp
       float overheatingTemp=flash.readFloat(dailyLocation+32);
       if(dht.readTemperature(true)>=overheatingTemp){
+        connectInternet();
+        overheatingTemp = getHighTemp();
         delay(3000);
         if(dht.readTemperature(true)>=overheatingTemp){
           //Serial.println(F("OverheatingTemp is "));
@@ -123,10 +124,9 @@ void loop() {
           String notification = "Your tunnel is currently overheating with a temperature of: ";
           notification+= String(dht.readTemperature(true));
           notification+= "F";
-          connectInternet();
           sendNotification(notification);
-          gsmAccess.shutdown();
         }
+        gsmAccess.shutdown();
       }
       delay(3000);
   
@@ -152,10 +152,11 @@ void loop() {
       updatesJson(jsonBuffer);
       httpRequest(jsonBuffer);
   
-      delay(20000);
+      delay(30000);
+      float overheatingTemp = getHighTemp();
       flash.eraseBlock32K(dailyLocation);
       flash.writeLong(dailyLocation,0);
-      flash.writeFloat(dailyLocation+32,ThingSpeak.readFloatField(ThingSpeakChannelIDHigh,1,ThingSpeakReadKeyHigh));
+      flash.writeFloat(dailyLocation+32,overheatingTemp);
       forceDayCycle=0;
       gsmAccess.shutdown();
       delay(5000);
@@ -179,6 +180,21 @@ void loop() {
 
 void Alarma(){
   matched = true;
+}
+
+//Get a new high temperature
+float getHighTemp(){
+  float overheatingTemp = ThingSpeak.readFloatField(ThingSpeakChannelIDHigh,1,ThingSpeakReadKeyHigh);
+  int statusCode = 0;
+  statusCode = ThingSpeak.getLastReadStatus();
+  if(statusCode==200){
+    //Serial.println("Got high temperature");
+    return overheatingTemp;
+  }
+  else{
+    //Serial.println("Problem reading channel. HTTP error code " + String(statusCode)); 
+    return flash.readFloat(dailyLocation+32);
+  }
 }
 
 //Connect to the internet
