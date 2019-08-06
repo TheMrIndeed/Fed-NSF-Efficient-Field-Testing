@@ -45,7 +45,9 @@ GSMClient client;
 DHT dht(DHTPIN,DHTTYPE);
 SPIFlash flash(FlashChipSelect);
 
+void Alarma();
 float getHighTemp();
+String getResponse();
 void connectInternet();
 String print2digits(int number);
 void httpRequest(char* jsonBuffer);
@@ -62,7 +64,7 @@ void setup() {
   Serial.begin(9600);
   while(!Serial);
   
-  Serial.println(F("Arduino_Field_Testing"));
+  Serial.println(F("Hourly Temperature Upload 08"));
   
   connectInternet();
 
@@ -78,70 +80,22 @@ void setup() {
   gsmAccess.shutdown();
   delay(2000);
   Serial.println(F("\nStarting Sleep Cycle.\n"));
-  byte minu=(((rtc.getMinutes()+10)-rtc.getMinutes()%10)%60);
+
+  minu=(((rtc.getMinutes()+10)-rtc.getMinutes()%10)%60);
+  while(!matched){
+    if(rtc.getMinutes()==minu){
+      matched=true;
+    }
+  }
   
-  rtc.setAlarmMinutes(minu);
-  rtc.setAlarmSeconds(0);
-  rtc.enableAlarm(rtc.MATCH_MMSS);
-    
-  rtc.attachInterrupt(Alarma);
-  rtc.standbyMode();
   digitalWrite(ledPin, LOW);
 }
 
 void loop() {
   if(matched){
-    //Every 10 minutes take temperature, check if it is too high
-    if(rtc.getEpoch()%86400<=86300&&rtc.getEpoch()%86400>=100&&forceDayCycle<=86500){
-      //Serial.println(F("Getting temperature"));
-      digitalWrite(ledPin, HIGH);
-  
-      //Store current time and temperature
-      int i;
-      for(i=0;i<300;i+=2){
-        if(flash.readLong(tempStart+(32*i))<=1){
-          flash.writeLong(tempStart+(32*i),rtc.getEpoch());
-          dht.readTemperature(true);
-          delay(3000);
-          int temp = dht.readTemperature(true);
-          //Serial.print(F("Current temp: "));
-          //Serial.println(temp);
-          flash.writeLong(tempStart+(32*(i+1)),temp);
-          break;
-        }
-      }
-      delay(3000);
-  
-      //Check for high temp
-      float overheatingTemp=flash.readFloat(dailyLocation+32);
-      if(dht.readTemperature(true)>=overheatingTemp){
-        connectInternet();
-        overheatingTemp = getHighTemp();
-        delay(3000);
-        if(dht.readTemperature(true)>=overheatingTemp){
-          //Serial.println(F("OverheatingTemp is "));
-          //Serial.println(overheatingTemp);
-          String notification = "Your tunnel is currently overheating with a temperature of: ";
-          notification+= String(dht.readTemperature(true));
-          notification+= "F";
-          sendNotification(notification);
-        }
-        gsmAccess.shutdown();
-      }
-      delay(3000);
-  
-      //Advance Day Cycle
-      forceDayCycle+=600;
-      flash.eraseBlock32K(dailyLocation);
-      flash.writeLong(dailyLocation,forceDayCycle);
-      flash.writeFloat(dailyLocation+32,overheatingTemp);
-      //Serial.println(F("Finished getting temperature"));
-      digitalWrite(ledPin, LOW);
-    }
-  
     //Send in the temperature once a day or if has not run for a day
     if(rtc.getEpoch()%86400>=86300||rtc.getEpoch()%86400<=100||forceDayCycle>=86500){
-      //Serial.println("Preforming daily upload and download");
+      Serial.println("Preforming daily upload and download");
       digitalWrite(ledPin, HIGH);
       delay(200);
       digitalWrite(ledPin, LOW);
@@ -154,20 +108,72 @@ void loop() {
   
       delay(30000);
       float overheatingTemp = getHighTemp();
-      flash.eraseBlock32K(dailyLocation);
+      flash.eraseChip();
       flash.writeLong(dailyLocation,0);
       flash.writeFloat(dailyLocation+32,overheatingTemp);
       forceDayCycle=0;
+      rtc.setEpoch(gsmAccess.getTime());
       gsmAccess.shutdown();
       delay(5000);
-      //Serial.println("Finished daily upload and download");
+      Serial.println("Finished daily upload and download");
+      digitalWrite(ledPin, LOW);
+    }
+    
+    //Every 10 minutes take temperature, check if it is too high
+    else{
+      Serial.println(F("Getting temperature"));
+      digitalWrite(ledPin, HIGH);
+
+      dht.readTemperature(true);
+      delay(3000);
+      int temp = dht.readTemperature(true);
+      Serial.print(F("Current temp: "));
+      Serial.println(temp);
+      Serial.print(F("Current Epoch: "));
+      Serial.println(rtc.getEpoch());
+          
+      //Store current time and temperature
+      int i;
+      for(i=0;i<300;i+=2){
+        if(flash.readLong(tempStart+(32*i))<=1){
+          flash.writeLong(tempStart+(32*i),rtc.getEpoch());
+          flash.writeLong(tempStart+(32*(i+1)),temp);
+          break;
+        }
+      }
+      delay(3000);
+  
+      //Check for high temp
+      float overheatingTemp=flash.readFloat(dailyLocation+32);
+      if(temp>=overheatingTemp){
+        Serial.println("May be overheating");
+        connectInternet();
+        overheatingTemp = getHighTemp();
+        if(temp>=overheatingTemp){
+          Serial.println(F("OverheatingTemp is "));
+          Serial.println(overheatingTemp);
+          String notification = "Your tunnel is currently overheating with a temperature of: ";
+          notification+= String(temp);
+          notification+= "F";
+          sendNotification(notification);
+        }
+        gsmAccess.shutdown();
+      }
+      delay(3000);
+  
+      //Advance Day Cycle
+      forceDayCycle+=600;
+      flash.eraseBlock32K(dailyLocation);
+      flash.writeLong(dailyLocation,forceDayCycle);
+      flash.writeFloat(dailyLocation+32,overheatingTemp);
+      Serial.println(F("Finished getting temperature"));
       digitalWrite(ledPin, LOW);
     }
 
     //Reset the alarm
     matched = false;
     
-    byte minu=(((rtc.getMinutes()+10)-rtc.getMinutes()%10)%60);
+    minu=(((rtc.getMinutes()+10)-rtc.getMinutes()%10)%60);
   
     rtc.setAlarmMinutes(minu);
     rtc.setAlarmSeconds(0);
@@ -176,6 +182,9 @@ void loop() {
     rtc.attachInterrupt(Alarma);
     rtc.standbyMode();
   }
+  //if(rtc.getSeconds()==sec){
+    //Alarma();
+  //}
 }
 
 void Alarma(){
@@ -199,20 +208,27 @@ float getHighTemp(){
 
 //Connect to the internet
 void connectInternet(){
-  boolean connected = false;
-  while(!connected){
+  boolean notConnected = true;
+  while(notConnected){
     if((gsmAccess.begin() == GSM_READY)&&(gprs.attachGPRS(GPRS_APN, GPRS_LOGIN, GPRS_PASSWORD) == GPRS_READY)){
       Serial.println(F("Connected"));
-      connected = true;
+      int i;
+      for(i=0;i<2;i++){
+        digitalWrite(ledPin, HIGH); //LED will flash if the SIM can connect
+        delay(250);
+        digitalWrite(ledPin, LOW);
+        delay(250);
+      }
+      notConnected = false;
     }
     else{
       Serial.println(F("Not connected"));
       int i;
       for(i=0;i<5;i++){
         digitalWrite(ledPin, HIGH); //LED will flash if the SIM can't connect
-        delay(250);
+        delay(500);
         digitalWrite(ledPin, LOW);
-        delay(250);
+        delay(500);
       }
     }
   }
@@ -244,44 +260,85 @@ void updatesJson(char* jsonBuffer){
   }
   size_t len = strlen(jsonBuffer);
   jsonBuffer[len-1] = ']';
-  //Serial.println(jsonBuffer);
+  Serial.println(jsonBuffer);
 }
 
 // Updates the ThingSpeakchannel with data
 void httpRequest(char* jsonBuffer) {
-  // JSON format for data buffer in the API
-  char data[6000] = "{\"write_api_key\":\"";
-  strcat(data,ThingSpeakWriteKeyTemp);
-  strcat(data,"\",\"updates\":");
-  strcat(data,jsonBuffer);
-  strcat(data,"}");
-  // Close any connection before sending a new request
-  client.stop();
-  String data_length = String(strlen(data)+1); //Compute the data buffer length
-  //Serial.println(data);
-  // POST data to ThingSpeak
-  if (client.connect(TSserver, 80)) {
-    client.print("POST /channels/");
-    client.print(ThingSpeakChannelIDTemp);
-    client.println("/bulk_update.json HTTP/1.1");
-    client.println("Host: api.thingspeak.com");
-    client.println("User-Agent: mw.doc.bulk-update (MKR_GSM_1400)");
-    client.println("Connection: close");
-    client.println("Content-Type: application/json");
-    client.println("Content-Length: "+data_length);
-    client.println();
-    client.println(data);
+  int responce = 0;
+  int runs = 0;
+  while(!responce){
+    // JSON format for data buffer in the API
+    char data[6000] = "{\"write_api_key\":\"";
+    strcat(data,ThingSpeakWriteKeyTemp);
+    strcat(data,"\",\"updates\":");
+    strcat(data,jsonBuffer);
+    strcat(data,"}");
+    // Close any connection before sending a new request
+    client.stop();
+    String data_length = String(strlen(data)+1); //Compute the data buffer length
+    //Serial.println(data);
+    // POST data to ThingSpeak
+    if (client.connect(TSserver, 80)) {
+      client.print("POST /channels/");
+      client.print(ThingSpeakChannelIDTemp);
+      client.println("/bulk_update.json HTTP/1.1");
+      client.println("Host: api.thingspeak.com");
+      client.println("User-Agent: mw.doc.bulk-update (MKR_GSM_1400)");
+      client.println("Connection: close");
+      client.println("Content-Type: application/json");
+      client.println("Content-Length: "+data_length);
+      client.println();
+      client.println(data);
+    }
+    else {
+      //Serial.println("Failure: Failed to connect to ThingSpeak");
+    }
+    delay(250); //Wait to receive the response
+    client.parseFloat();
+    responce=client.parseInt();
+    String resp = String(responce);
+    Serial.println("Response code:"+resp); // Print the response code. 202 indicates that the TSserver has accepted the response
+    //Serial.println(getResponse());
+    if(!responce){
+      runs++;
+      jsonBuffer[0] = '['; //Reinitialize the jsonBuffer for next batch of data
+      jsonBuffer[1] = '\0';
+      updatesJson(jsonBuffer);
+      if(runs==4){
+        responce=1;
+      }
+      delay(30000);
+    }
   }
-  else {
-    //Serial.println("Failure: Failed to connect to ThingSpeak");
-  }
-  delay(250); //Wait to receive the response
-  client.parseFloat();
-  String resp = String(client.parseInt());
-  //Serial.println("Response code:"+resp); // Print the response code. 202 indicates that the TSserver has accepted the response
   jsonBuffer[0] = '['; //Reinitialize the jsonBuffer for next batch of data
   jsonBuffer[1] = '\0';
   flash.eraseBlock32K(tempStart);
+}
+
+// Wait for a response from the server indicating availability,
+// and then collect the response and build it into a string.
+
+String getResponse(){
+  String response;
+  long startTime = millis();
+  int TIMEOUT = 5000;
+
+  delay( 200 );
+  while ( client.available() < 1 && (( millis() - startTime ) < TIMEOUT ) ){
+        delay( 5 );
+  }
+  
+  if( client.available() > 0 ){ // Get response from server.
+     char charIn;
+     do {
+         charIn = client.read(); // Read a char from the buffer.
+         response += charIn;     // Append the char to the string response.
+        } while ( client.available() > 0 );
+    }
+  client.stop();
+        
+  return response;
 }
 
 //Send a notification through IFTTT that will show the input string
