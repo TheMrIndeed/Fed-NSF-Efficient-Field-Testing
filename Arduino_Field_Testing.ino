@@ -64,7 +64,7 @@ void setup() {
   Serial.begin(9600);
   while(!Serial);
   
-  Serial.println(F("Hourly Temperature Upload 08"));
+  Serial.println(F("Daily Temperature Upload 09"));
   
   connectInternet();
 
@@ -79,7 +79,6 @@ void setup() {
   Serial.println(F("GSM initialized."));
   gsmAccess.shutdown();
   delay(2000);
-  Serial.println(F("\nStarting Sleep Cycle.\n"));
 
   minu=(((rtc.getMinutes()+10)-rtc.getMinutes()%10)%60);
   while(!matched){
@@ -87,15 +86,15 @@ void setup() {
       matched=true;
     }
   }
-  
+  Serial.println(F("\nStarting Sleep Cycle.\n"));
   digitalWrite(ledPin, LOW);
 }
 
 void loop() {
   if(matched){
-    //Send in the temperature once a day or if has not run for a day
-    if(rtc.getEpoch()%86400>=86300||rtc.getEpoch()%86400<=100||forceDayCycle>=86500){
-      Serial.println("Preforming daily upload and download");
+    //Send in the temperature once a day and at least 2 hours have passed or if has not run for a day
+    if((rtc.getHours()==0&&forceDayCycle>=12000)||forceDayCycle>=86500){
+      //Serial.println("Preforming daily upload and download");
       digitalWrite(ledPin, HIGH);
       delay(200);
       digitalWrite(ledPin, LOW);
@@ -115,43 +114,48 @@ void loop() {
       rtc.setEpoch(gsmAccess.getTime());
       gsmAccess.shutdown();
       delay(5000);
-      Serial.println("Finished daily upload and download");
+      //Serial.println("Finished daily upload and download");
       digitalWrite(ledPin, LOW);
     }
     
     //Every 10 minutes take temperature, check if it is too high
     else{
-      Serial.println(F("Getting temperature"));
+      //Serial.println(F("Getting temperature"));
       digitalWrite(ledPin, HIGH);
 
       dht.readTemperature(true);
       delay(3000);
       int temp = dht.readTemperature(true);
-      Serial.print(F("Current temp: "));
-      Serial.println(temp);
-      Serial.print(F("Current Epoch: "));
-      Serial.println(rtc.getEpoch());
+      //Serial.print(F("Current temp: "));
+      //Serial.println(temp);
+      //Serial.print(F("Current Epoch: "));
+      //Serial.println(rtc.getEpoch());
           
       //Store current time and temperature
       int i;
+      int j=0;
       for(i=0;i<300;i+=2){
         if(flash.readLong(tempStart+(32*i))<=1){
           flash.writeLong(tempStart+(32*i),rtc.getEpoch());
           flash.writeLong(tempStart+(32*(i+1)),temp);
+          j=1;
           break;
         }
+      }
+      if(j==0){
+          forceDayCycle=100000;
       }
       delay(3000);
   
       //Check for high temp
       float overheatingTemp=flash.readFloat(dailyLocation+32);
       if(temp>=overheatingTemp){
-        Serial.println("May be overheating");
+        //Serial.println("May be overheating");
         connectInternet();
         overheatingTemp = getHighTemp();
         if(temp>=overheatingTemp){
-          Serial.println(F("OverheatingTemp is "));
-          Serial.println(overheatingTemp);
+          //Serial.println(F("OverheatingTemp is "));
+          //Serial.println(overheatingTemp);
           String notification = "Your tunnel is currently overheating with a temperature of: ";
           notification+= String(temp);
           notification+= "F";
@@ -166,7 +170,7 @@ void loop() {
       flash.eraseBlock32K(dailyLocation);
       flash.writeLong(dailyLocation,forceDayCycle);
       flash.writeFloat(dailyLocation+32,overheatingTemp);
-      Serial.println(F("Finished getting temperature"));
+      //Serial.println(F("Finished getting temperature"));
       digitalWrite(ledPin, LOW);
     }
 
@@ -182,7 +186,7 @@ void loop() {
     rtc.attachInterrupt(Alarma);
     rtc.standbyMode();
   }
-  //if(rtc.getSeconds()==sec){
+  //if(rtc.getMinutes()==minu){
     //Alarma();
   //}
 }
@@ -211,7 +215,7 @@ void connectInternet(){
   boolean notConnected = true;
   while(notConnected){
     if((gsmAccess.begin() == GSM_READY)&&(gprs.attachGPRS(GPRS_APN, GPRS_LOGIN, GPRS_PASSWORD) == GPRS_READY)){
-      Serial.println(F("Connected"));
+      //Serial.println(F("Connected"));
       int i;
       for(i=0;i<2;i++){
         digitalWrite(ledPin, HIGH); //LED will flash if the SIM can connect
@@ -222,7 +226,7 @@ void connectInternet(){
       notConnected = false;
     }
     else{
-      Serial.println(F("Not connected"));
+      //Serial.println(F("Not connected"));
       int i;
       for(i=0;i<5;i++){
         digitalWrite(ledPin, HIGH); //LED will flash if the SIM can't connect
@@ -260,7 +264,7 @@ void updatesJson(char* jsonBuffer){
   }
   size_t len = strlen(jsonBuffer);
   jsonBuffer[len-1] = ']';
-  Serial.println(jsonBuffer);
+  //Serial.println(jsonBuffer);
 }
 
 // Updates the ThingSpeakchannel with data
@@ -298,7 +302,7 @@ void httpRequest(char* jsonBuffer) {
     client.parseFloat();
     responce=client.parseInt();
     String resp = String(responce);
-    Serial.println("Response code:"+resp); // Print the response code. 202 indicates that the TSserver has accepted the response
+    //Serial.println("Response code:"+resp); // Print the response code. 202 indicates that the TSserver has accepted the response
     //Serial.println(getResponse());
     if(!responce){
       runs++;
