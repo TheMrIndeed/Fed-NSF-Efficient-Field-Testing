@@ -64,7 +64,7 @@ void setup() {
   Serial.begin(9600);
   while(!Serial);
   
-  Serial.println(F("Daily Temperature Upload 09"));
+  Serial.println(F("Arduino Field Testing"));
   
   connectInternet();
 
